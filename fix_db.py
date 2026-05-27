@@ -1,6 +1,10 @@
 code = """import pymysql
 import pymysql.cursors
 from contextlib import contextmanager
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 class Database:
     def __init__(self):
@@ -10,11 +14,11 @@ class Database:
     def connect(self):
         try:
             self.connection = pymysql.connect(
-                host="localhost",
-                user="root",
-                password="root",
-                database="social_analytics",
-                port=3308,
+                host=os.getenv('DB_HOST', 'localhost'),
+                user=os.getenv('DB_USER', 'root'),
+                password=os.getenv('DB_PASSWORD', ''),
+                database=os.getenv('DB_NAME', 'social_analytics'),
+                port=int(os.getenv('DB_PORT', 3308)),
                 cursorclass=pymysql.cursors.DictCursor
             )
             self.cursor = self.connection.cursor()
