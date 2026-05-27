@@ -1,0 +1,10 @@
+Flask==3.0.0
+Flask-CORS==4.0.0
+pymysql==1.1.0
+pandas==2.3.3
+numpy==2.4.6
+scikit-learn==1.8.0
+textblob==0.18.0
+nltk==3.8.1
+rapidfuzz==3.14.5
+openpyxl==3.1.2

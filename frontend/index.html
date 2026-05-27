@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Analytics Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <h1>📊 Social Media Analytics Dashboard</h1>
+            <p>AI &amp; Fake Profile Detection with Risk Analysis</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="upload">📤 Upload Data</button>
+            <button class="nav-tab" data-tab="profiles">👥 Profiles</button>
+            <button class="nav-tab" data-tab="detail">🔍 Profile Details</button>
+        </nav>
+
+        <!-- TAB 1: UPLOAD -->
+        <div id="upload-tab" class="tab-content active">
+            <div class="card">
+                <h2>Upload Social Media Data</h2>
+                <p class="subtitle">Supported formats: CSV, JSON, Excel</p>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <h3>Drop your file here or click to browse</h3>
+                    <p>Maximum file size: 10 MB</p>
+                    <input type="file" id="fileInput" accept=".csv,.json,.xlsx" style="display:none;">
+                </div>
+
+                <div id="uploadStatus" style="display:none;" class="upload-status">
+                    <div class="spinner"></div>
+                    <p id="statusMessage">Processing your file...</p>
+                </div>
+
+                <div id="uploadResult" style="display:none;" class="upload-result">
+                    <div id="resultIcon"></div>
+                    <p id="resultMessage"></p>
+                    <button onclick="resetUpload()" class="btn btn-secondary">Upload Another File</button>
+                </div>
+
+                <div class="file-requirements">
+                    <h4>📋 Required Columns:</h4>
+                    <ul>
+                        <li><strong>username</strong> — User's account name</li>
+                        <li><strong>post_text</strong> — Content of the post</li>
+                        <li><strong>post_date</strong> — Date of the post (YYYY-MM-DD)</li>
+                    </ul>
+                    <h4>📋 Optional Columns:</h4>
+                    <ul>
+                        <li><strong>display_name</strong> — Full display name</li>
+                        <li><strong>bio</strong> — User biography</li>
+                        <li><strong>followers_count</strong> — Number of followers</li>
+                        <li><strong>following_count</strong> — Number following</li>
+                        <li><strong>account_age_days</strong> — Days since account creation</li>
+                        <li><strong>likes</strong> — Likes on post</li>
+                        <li><strong>comments</strong> — Comments on post</li>
+                        <li><strong>shares</strong> — Shares on post</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PROFILES LIST -->
+        <div id="profiles-tab" class="tab-content">
+            <div class="card">
+                <h2>Analyzed Profiles</h2>
+                <p id="profilesCount" class="subtitle">No profiles loaded yet</p>
+                <div id="profilesList" class="profiles-grid">
+                    <p style="text-align:center; color:#666;">Upload a file to see profiles</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PROFILE DETAILS -->
+        <div id="detail-tab" class="tab-content">
+            <div class="card">
+                <h2>Profile Details</h2>
+
+                <div id="profileSelector" style="margin-bottom:20px;">
+                    <label for="profileSelect">Select a profile:</label>
+                    <select id="profileSelect">
+                        <option value="">-- Choose a profile --</option>
+                    </select>
+                </div>
+
+                <div id="profileDetail" style="display:none;">
+                    <div class="profile-header">
+                        <h2 id="detailName"></h2>
+                        <p id="detailUsername" class="profile-username"></p>
+                    </div>
+
+                    <div class="risk-scores-grid">
+                        <div class="risk-score-card">
+                            <h4>AI Profile Risk</h4>
+                            <div class="risk-meter">
+                                <div id="aiRiskBar" class="risk-bar" style="background:#ff6b6b;"></div>
+                            </div>
+                            <p id="aiRiskScore" class="risk-value">0%</p>
+                        </div>
+                        <div class="risk-score-card">
+                            <h4>Fake Profile Risk</h4>
+                            <div class="risk-meter">
+                                <div id="fakeRiskBar" class="risk-bar" style="background:#ffa94d;"></div>
+                            </div>
+                            <p id="fakeRiskScore" class="risk-value">0%</p>
+                        </div>
+                        <div class="risk-score-card">
+                            <h4>Account Takeover Risk</h4>
+                            <div class="risk-meter">
+                                <div id="takeoverRiskBar" class="risk-bar" style="background:#ff922b;"></div>
+                            </div>
+                            <p id="takeoverRiskScore" class="risk-value">0%</p>
+                        </div>
+                        <div class="risk-score-card">
+                            <h4>Overall Risk</h4>
+                            <div class="risk-meter">
+                                <div id="overallRiskBar" class="risk-bar" style="background:#ff0000;"></div>
+                            </div>
+                            <p id="overallRiskScore" class="risk-value">0%</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-info">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Bio:</span>
+                                <span id="detailBio" class="info-value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Followers:</span>
+                                <span id="detailFollowers" class="info-value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Following:</span>
+                                <span id="detailFollowing" class="info-value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Account Age (days):</span>
+                                <span id="detailAccountAge" class="info-value">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Posts:</span>
+                                <span id="detailPostCount" class="info-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-container">
+                        <div class="chart-wrapper">
+                            <h3>Risk Scores Over Time</h3>
+                            <canvas id="sentimentChart"></canvas>
+                        </div>
+                        <div class="chart-wrapper">
+                            <h3>Risk Factors Distribution</h3>
+                            <canvas id="riskFactorsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="posts-section">
+                        <h3>Recent Posts</h3>
+                        <table class="posts-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Post</th>
+                                    <th>Engagement</th>
+                                    <th>Extremism</th>
+                                    <th>Toxicity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="postsTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align:center;">No posts available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    let allProfiles       = [];
+    let currentLineChart  = null;
+    let currentDonutChart = null;
+
+    // TAB SWITCHING
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.dataset.tab;
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            btn.classList.add('active');
+            if (tabName === 'profiles') loadProfiles();
+        });
+    });
+
+    // FILE UPLOAD
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput  = document.getElementById('fileInput');
+
+    uploadArea.addEventListener('click',     () => fileInput.click());
+    fileInput.addEventListener('change',     e  => handleFile(e.target.files[0]));
+    uploadArea.addEventListener('dragover',  e  => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+    uploadArea.addEventListener('dragleave', ()  => uploadArea.classList.remove('drag-over'));
+    uploadArea.addEventListener('drop',      e  => {
+        e.preventDefault();
+        uploadArea.classList.remove('drag-over');
+        handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file) {
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        uploadArea.style.display = 'none';
+        show('uploadStatus');
+
+        fetch('/api/upload', { method: 'POST', body: formData })
+            .then(r => { if (!r.ok) throw new Error(`Server error: ${r.status}`); return r.json(); })
+            .then(data => {
+                hide('uploadStatus');
+                show('uploadResult');
+                if (data.success) {
+                    setResult('✓', '#51cf66',
+                        `<strong>Success!</strong><br>Processed ${data.profiles_count} profiles and ${data.posts_count} posts`);
+                    loadProfiles();
+                } else {
+                    setResult('✗', '#ff6b6b', `<strong>Error:</strong> ${data.error}`);
+                }
+            })
+            .catch(err => {
+                hide('uploadStatus');
+                show('uploadResult');
+                setResult('✗', '#ff6b6b', `<strong>Error:</strong> ${err.message}`);
+            });
+    }
+
+    function setResult(icon, color, message) {
+        const el = document.getElementById('resultIcon');
+        el.innerHTML   = icon;
+        el.style.color = color;
+        document.getElementById('resultMessage').innerHTML = message;
+    }
+
+    function resetUpload() {
+        uploadArea.style.display = 'block';
+        hide('uploadResult');
+        fileInput.value = '';
+    }
+
+    // PROFILES LIST
+    function loadProfiles() {
+        fetch('/api/profiles')
+            .then(r => r.json())
+            .then(data => {
+                if (!data.success || !data.profiles.length) return;
+                allProfiles = data.profiles;
+                const n = data.profiles.length;
+                document.getElementById('profilesCount').textContent =
+                    `Found ${n} profile${n !== 1 ? 's' : ''}`;
+                renderProfilesList();
+                updateProfileSelector();
+            })
+            .catch(err => console.error('Error loading profiles:', err));
+    }
+
+    function renderProfilesList() {
+        const list = document.getElementById('profilesList');
+        list.innerHTML = '';
+        allProfiles.forEach(profile => {
+            const card = document.createElement('div');
+            card.className = `profile-card ${getRiskLevel(profile.overall_risk)}`;
+            card.innerHTML = `
+                <div class="profile-card-header">
+                    <h3>${escapeHtml(profile.display_name || profile.username)}</h3>
+                    <span class="username">@${escapeHtml(profile.username)}</span>
+                </div>
+                <div class="profile-card-risks">
+                    <div class="risk-item">
+                        <span class="risk-label">AI Risk:</span>
+                        <span class="risk-bar-small" style="width:${profile.ai_profile_risk}%"></span>
+                        <span class="risk-value">${profile.ai_profile_risk.toFixed(1)}%</span>
+                    </div>
+                    <div class="risk-item">
+                        <span class="risk-label">Fake Risk:</span>
+                        <span class="risk-bar-small" style="width:${profile.fake_profile_risk}%"></span>
+                        <span class="risk-value">${profile.fake_profile_risk.toFixed(1)}%</span>
+                    </div>
+                </div>
+                <div class="profile-card-overall">
+                    Overall Risk: <strong>${profile.overall_risk.toFixed(1)}%</strong>
+                </div>
+                <button class="btn btn-small" onclick="viewProfileDetail(${profile.profile_id})">
+                    View Details
+                </button>`;
+            list.appendChild(card);
+        });
+    }
+
+    function updateProfileSelector() {
+        const select = document.getElementById('profileSelect');
+        select.innerHTML = '<option value="">-- Choose a profile --</option>';
+        allProfiles.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value       = p.profile_id;
+            opt.textContent = `${p.display_name || p.username} (@${p.username})`;
+            select.appendChild(opt);
+        });
+    }
+
+    function viewProfileDetail(profileId) {
+        document.getElementById('profileSelect').value = profileId;
+        loadProfileDetail();
+        document.querySelector('[data-tab="detail"]').click();
+    }
+
+    function getRiskLevel(score) {
+        if (score >= 70) return 'risk-high';
+        if (score >= 40) return 'risk-medium';
+        return 'risk-low';
+    }
+
+    // PROFILE DETAIL
+    document.getElementById('profileSelect').addEventListener('change', loadProfileDetail);
+
+    function loadProfileDetail() {
+        const profileId = document.getElementById('profileSelect').value;
+        if (!profileId) { hide('profileDetail'); return; }
+        fetch(`/api/profiles/${profileId}`)
+            .then(r => r.json())
+            .then(data => { if (data.success) renderProfileDetail(data.profile); })
+            .catch(err => console.error('Error loading profile:', err));
+    }
+
+    function renderProfileDetail(profile) {
+        document.getElementById('detailName').textContent     = profile.display_name || profile.username;
+        document.getElementById('detailUsername').textContent = '@' + profile.username;
+
+        updateRiskBar('aiRisk',       profile.ai_profile_risk);
+        updateRiskBar('fakeRisk',     profile.fake_profile_risk);
+        updateRiskBar('takeoverRisk', profile.account_takeover_risk);
+        updateRiskBar('overallRisk',  profile.overall_risk);
+
+        document.getElementById('detailBio').textContent        = profile.bio || 'Not provided';
+        document.getElementById('detailFollowers').textContent  = (profile.followers_count || 0).toLocaleString();
+        document.getElementById('detailFollowing').textContent  = (profile.following_count || 0).toLocaleString();
+        document.getElementById('detailAccountAge').textContent = profile.account_age_days || '-';
+        document.getElementById('detailPostCount').textContent  = profile.posts ? profile.posts.length : 0;
+
+        const posts = profile.posts || [];
+        renderTimelineChart(posts);
+        renderDonutChart(posts);
+        renderPostsTable(posts);
+        show('profileDetail');
+    }
+
+    function updateRiskBar(name, value) {
+        const v = value || 0;
+        document.getElementById(name + 'Bar').style.width   = v + '%';
+        document.getElementById(name + 'Score').textContent = v.toFixed(1) + '%';
+    }
+
+    // CHARTS
+    function renderTimelineChart(posts) {
+        const ctx = document.getElementById('sentimentChart').getContext('2d');
+        if (currentLineChart) currentLineChart.destroy();
+        if (!posts.length) return;
+        const sorted = [...posts].sort((a, b) => new Date(a.post_date) - new Date(b.post_date));
+        currentLineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sorted.map(p => new Date(p.post_date).toLocaleDateString()),
+                datasets: [
+                    { label: 'Extremism Score',     data: sorted.map(p => p.extremism_score || 0),
+                      borderColor: '#ffa94d', backgroundColor: 'rgba(255,169,77,0.1)', tension: 0.3 },
+                    { label: 'Toxicity Score',      data: sorted.map(p => p.toxicity_score || 0),
+                      borderColor: '#ff6b6b', backgroundColor: 'rgba(255,107,107,0.1)', tension: 0.3 },
+                    { label: 'Misinformation Score',data: sorted.map(p => p.misinformation_score || 0),
+                      borderColor: '#fd7e14', backgroundColor: 'rgba(253,126,20,0.1)', tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'top' } },
+                       scales: { y: { min: 0, max: 100 } } }
+        });
+    }
+
+    function renderDonutChart(posts) {
+        const ctx = document.getElementById('riskFactorsChart').getContext('2d');
+        if (currentDonutChart) currentDonutChart.destroy();
+        if (!posts.length) return;
+        const avg = key => posts.reduce((sum, p) => sum + (p[key] || 0), 0) / posts.length;
+        const avgExtremism      = avg('extremism_score');
+        const avgToxicity       = avg('toxicity_score');
+        const avgMisinformation = avg('misinformation_score');
+        const totalRisk = Math.min(100, avgExtremism + avgToxicity + avgMisinformation);
+        const safe      = Math.max(0, 100 - totalRisk);
+        currentDonutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Extremism', 'Toxicity', 'Misinformation', 'Safe'],
+                datasets: [{ data: [avgExtremism, avgToxicity, avgMisinformation, safe],
+                             backgroundColor: ['#ffa94d', '#ff6b6b', '#fd7e14', '#51cf66'] }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    // POSTS TABLE
+    function renderPostsTable(posts) {
+        const tbody = document.getElementById('postsTableBody');
+        tbody.innerHTML = '';
+        if (!posts.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No posts available</td></tr>';
+            return;
+        }
+        [...posts]
+            .sort((a, b) => new Date(b.post_date) - new Date(a.post_date))
+            .slice(0, 10)
+            .forEach(post => {
+                const text       = post.post_text || '';
+                const preview    = text.length > 50 ? escapeHtml(text.substring(0, 50)) + '…' : escapeHtml(text);
+                const engagement = (post.likes || 0) + (post.comments || 0) + (post.shares || 0);
+                const extremism  = (post.extremism_score || 0).toFixed(1);
+                const toxicity   = (post.toxicity_score  || 0).toFixed(1);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(post.post_date).toLocaleDateString()}</td>
+                    <td title="${escapeHtml(text)}">${preview}</td>
+                    <td>${engagement}</td>
+                    <td><span class="badge ${post.extremism_score > 50 ? 'badge-warning' : 'badge-info'}">${extremism}%</span></td>
+                    <td><span class="badge ${post.toxicity_score  > 50 ? 'badge-danger'  : 'badge-info'}">${toxicity}%</span></td>`;
+                tbody.appendChild(row);
+            });
+    }
+
+    // UTILITIES
+    function show(id) { document.getElementById(id).style.display = 'block'; }
+    function hide(id) { document.getElementById(id).style.display = 'none';  }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g,  '&amp;')
+            .replace(/</g,  '&lt;')
+            .replace(/>/g,  '&gt;')
+            .replace(/"/g,  '&quot;')
+            .replace(/'/g,  '&#39;');
+    }
+
+    // INIT
+    loadProfiles();
+    </script>
+</body>
+</html>
